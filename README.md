@@ -1,32 +1,42 @@
-# React + TypeScript + Vite
+# GREEN-API Чат
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Минимальный веб-чат поверх [GREEN-API](https://green-api.com) для обмена
+текстовыми сообщениями в WhatsApp. Интерфейс стилизован под
+[web.max.ru](https://web.max.ru).
 
-Currently, two official plugins are available:
+## Возможности
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Вход по учётным данным инстанса GREEN-API (`idInstance`, `apiTokenInstance`)
+- Создание чата по номеру телефона получателя
+- Отправка текстовых сообщений (`sendMessage`)
+- Получение входящих через HTTP API (`receiveNotification` / `deleteNotification`)
+- Хранение истории чатов в localStorage
 
-## React Compiler
+## Локальный запуск
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Требуется Node.js 18+.
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+После запуска открыть `http://localhost:5173/` в браузере.
+
+## Настройка GREEN-API
+
+1. Зарегистрироваться в [личном кабинете](https://console.green-api.com)
+   и создать инстанс (подойдёт бесплатный тариф)
+2. Привязать WhatsApp-аккаунт — отсканировать QR-код
+3. На странице входа приложения ввести `idInstance` и `apiTokenInstance`
+   из кабинета. При логине проверяется авторизация инстанса и
+   автоматически включаются нужные вебхуки
+4. Создать чат: номер получателя в формате `79001234567` (без `+`)
+
+## Прочее
+
+```bash
+npm run build    # продакшн-сборка в dist/
+npm run preview  # превью сборки
+npm run lint     # линтер
+```
