@@ -1,6 +1,10 @@
 import type { Credentials } from '../types';
 
-const API_BASE = 'https://api.green-api.com';
+const LEGACY_API_HOST = 'https://api.green-api.com';
+
+export function defaultApiUrl(idInstance: string): string {
+  return `https://${idInstance.slice(0, 4)}.api.greenapi.com`;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -12,7 +16,25 @@ export class ApiError extends Error {
 }
 
 function url(creds: Credentials, method: string, tail = ''): string {
-  return `${API_BASE}/waInstance${creds.idInstance}/${method}/${creds.apiTokenInstance}${tail}`;
+  return `${creds.apiUrl}/waInstance${creds.idInstance}/${method}/${creds.apiTokenInstance}${tail}`;
+}
+
+export async function resolveCredentials(
+  idInstance: string,
+  apiTokenInstance: string,
+): Promise<{ creds: Credentials; state: string }> {
+  const hosts = [defaultApiUrl(idInstance), LEGACY_API_HOST];
+  let apiError: ApiError | null = null;
+  for (const apiUrl of hosts) {
+    try {
+      const creds = { idInstance, apiTokenInstance, apiUrl };
+      const state = await getStateInstance(creds);
+      return { creds, state };
+    } catch (err) {
+      if (err instanceof ApiError) apiError = err;
+    }
+  }
+  throw apiError ?? new ApiError(0);
 }
 
 export async function getStateInstance(creds: Credentials): Promise<string> {
@@ -20,6 +42,20 @@ export async function getStateInstance(creds: Credentials): Promise<string> {
   if (!res.ok) throw new ApiError(res.status);
   const data = await res.json();
   return data.stateInstance;
+}
+
+export async function enableNotifications(creds: Credentials): Promise<void> {
+  const res = await fetch(url(creds, 'setSettings'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      incomingWebhook: 'yes',
+      outgoingMessageWebhook: 'yes',
+      outgoingAPIMessageWebhook: 'yes',
+      markIncomingMessagesReaded: 'yes',
+    }),
+  });
+  if (!res.ok) throw new ApiError(res.status);
 }
 
 export async function sendMessage(

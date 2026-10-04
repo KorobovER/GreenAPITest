@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { sendMessage, type ParsedMessage } from './api/greenApi';
+import {
+  defaultApiUrl,
+  enableNotifications,
+  sendMessage,
+  type ParsedMessage,
+} from './api/greenApi';
 import { ChatList } from './components/ChatList';
 import { ChatWindow } from './components/ChatWindow';
 import { LoginForm } from './components/LoginForm';
@@ -14,7 +19,9 @@ const chatsKey = (idInstance: string) => `ga:chats:${idInstance}`;
 function loadCredentials(): Credentials | null {
   try {
     const raw = localStorage.getItem(CREDS_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return { ...parsed, apiUrl: parsed.apiUrl ?? defaultApiUrl(parsed.idInstance) };
   } catch {
     return null;
   }
@@ -50,6 +57,10 @@ function App() {
     setActiveChatId(null);
     setCredentials(creds);
   };
+
+  useEffect(() => {
+    if (credentials) enableNotifications(credentials).catch(() => {});
+  }, [credentials]);
 
   const handleLogout = () => {
     localStorage.removeItem(CREDS_KEY);

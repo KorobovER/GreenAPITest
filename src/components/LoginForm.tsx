@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { ApiError, getStateInstance } from '../api/greenApi';
+import { ApiError, resolveCredentials } from '../api/greenApi';
 import type { Credentials } from '../types';
 
 interface Props {
@@ -14,11 +14,9 @@ export function LoginForm({ onLogin }: Props) {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const creds = {
-      idInstance: idInstance.trim(),
-      apiTokenInstance: apiTokenInstance.trim(),
-    };
-    if (!creds.idInstance || !creds.apiTokenInstance) {
+    const id = idInstance.trim();
+    const token = apiTokenInstance.trim();
+    if (!id || !token) {
       setError('Заполните оба поля');
       return;
     }
@@ -26,7 +24,7 @@ export function LoginForm({ onLogin }: Props) {
     setLoading(true);
     setError('');
     try {
-      const state = await getStateInstance(creds);
+      const { creds, state } = await resolveCredentials(id, token);
       if (state !== 'authorized') {
         setError(
           `Инстанс не авторизован (состояние: ${state}). Проверьте привязку телефона в личном кабинете GREEN-API.`,
